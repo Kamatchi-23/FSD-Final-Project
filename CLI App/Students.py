@@ -54,15 +54,6 @@ class Student:
         else:
             self.student_course_menu()
 
-
-    def enrol_subjects(self):
-        pass
-    def assign_results(self):
-        pass
-    def view_enrolment(self):
-        pass
-
-
     def change_password(self):
         self.new_password = input("\t New Password: ")
         #verify_password()
@@ -74,6 +65,15 @@ class Student:
         
     def remove_subject(self, sub_id):
         pass
+
+#####Jay's part##############
+    def enrol_subjects(self):
+        pass
+    def assign_results(self):
+        pass
+    def view_enrolment(self):
+        pass
+##############################
 
     def student_course_menu(self):
         choice = input("\t Student Course Menu (c/e/r/s/x): ")
