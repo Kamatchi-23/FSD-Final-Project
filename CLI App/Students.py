@@ -28,28 +28,28 @@ class Student:
             return False
 
     def register(self):
-        self.email = input("Email: ")
-        self.password = input("Password: ")
+        self.email = input("\033[1;37m Email: ")
+        self.password = input("\033[1;37m Password: ")
         #self.verify_credentials(self.email, self.password) to add
-        print("email and password formats acceptable")
+        print("\033[1;33m email and password formats acceptable")
         self.name = input("Name: ")
         #self.generate_stud_id()
         print(f"Enrolling Student {self.name}")
         self.student_menu()
 
     def login(self):
-        self.email = input("Email: ")
-        self.password = input("Password: ")
+        self.email = input("\033[1;37m Email: ")
+        self.password = input("\033[1;37m Password: ")
         login_verify = self.verify_credentials(self.email, self.password)
         while not login_verify:
-            print("Incorrect email or password format")
-            self.email = input("Email: ")
-            self.password = input("Password: ")
+            print("\033[1;31m Incorrect email or password format")
+            self.email = input("\033[1;37m Email: ")
+            self.password = input("\033[1;37m Password: ")
             login_verify = self.verify_credentials(self.email, self.password)
-        print("email and password formats acceptable")
+        print("\033[1;33m email and password formats acceptable")
         account_verify = self.verify_account(self.email, self.password)
         if not account_verify:
-            print("Student does not exist")
+            print("\033[1;31m Student does not exist")
             self.student_menu()
         else:
             self.student_course_menu()
@@ -76,7 +76,8 @@ class Student:
 ##############################
 
     def student_course_menu(self):
-        choice = input("\t Student Course Menu (c/e/r/s/x): ")
+        print("\t \033[1;36m Student Course Menu (c/e/r/s/x): ")
+        choice = input()
         while choice != "x":
             match choice:
                 case 'c':
@@ -91,23 +92,26 @@ class Student:
                     self.view_enrolment()
                 case _:
                     self.student_sub_helpmenu()
-            choice = input("\t Student Course Menu (c/e/r/s/x): ")
+            print("\t \033[1;36m Student Course Menu (c/e/r/s/x): ")
+            choice = input()
         print("\t Signed Out!! Back to Student Menu")
     
     
     def student_menu(self):
-        choice = input("Student System (l/r/x): ")
+        print("\033[1;36m Student System (l/r/x): ")
+        choice = input()
         while choice != "x":
             match choice:
                 case 'l':
-                    print("Student Sign In")
+                    print("\033[1;32m Student Sign In")
                     self.login()
                 case 'r':
                     print("Student Sign Up")
                     self.register()
                 case _:
                     self.student_helpmenu()
-            choice = input("Student System (l/r/x): ")
+            print("\033[1;36m Student System (l/r/x): ")
+            choice = input()
         print("Back to University Menu")
 
     def student_helpmenu(self):
