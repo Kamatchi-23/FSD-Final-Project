@@ -1,26 +1,19 @@
 import pandas as pd
-
 class Data:
-    def __init__(self) -> None:
-        self.file_path = "CLI App\student.data"
+    def __init__(self, file_path) -> None:
+        self.file_path = file_path
 
     def read_data(self):
         student_data = pd.read_csv(self.file_path, sep=",")
-        student_data.head()
+        return student_data
+
     def write_data(self, data):
-        data.to_csv(self.file_path)
-
-if __name__ == "__main__":
-    data = Data()
-    data.read_data()
-    
+        data.to_csv(self.file_path, index=False, encoding='utf-8')
 """
-# Open the file
-file = open(, 'r')
+if __name__ == "__main__":
+    stud_data = Data()
+    stud_data.read_data()
+    stud_data.write_data("This is john")
+    stud_data.read_data()
 
-# Read the file
-content = file.read()
-print(content)
-# Close the file
-file.close()
 """

@@ -1,18 +1,18 @@
 import re
+from DataFile import Data
+import pandas as pd
+import random
 
 class Student:
     def __init__(self) -> None:
-        self.name = "John Smith"
+        self.name = ""
         self.email = ""
         self.password = ""
         self.email_regex = r"(^[a-zA-Z]+\.+[a-zA-Z]+@+university+\.+com+$)"
         self.password_regex = r"(^[A-Z]+[a-z]{5,}+[0-9]{3,})"
         self.subjects = []
-        self.student_accounts = []
-        self.generate_stud_id()
-    
-    def generate_stud_id(self):
-        pass
+        self.file = Data("CLI App\\student.data")
+        self.student_df = self.read_accounts()
 
     def verify_credentials(self, email, password):
         verify_cred_result = True
@@ -22,15 +22,48 @@ class Student:
             verify_cred_result = False
         return verify_cred_result
 
-    def verify_account(self, email, password):
-        if email == "john.smith@university.com":
+    def read_accounts(self):
+        student_data = Data.read_data(self.file)
+        student_data = student_data.astype(str, errors="ignore")
+        return student_data
+
+    def verify_email(self, email):
+        emails = [x.lower() for x in list(self.student_df["Email"])]
+        if email.lower() in emails:
+            stud_rec = self.student_df[self.student_df["Email"].str.contains(email, case=False)]
+            self.name = stud_rec.Name.values[0]
             return True, self.name
         else:
             return False, self.name
 
+    def prefix_zero(self, id):
+        len_id = len(id)
+        id = id.zfill(6) if len_id < 6 else id
+        return id
+
+    def generate_stud_id(self):
+        ids = list(self.student_df["student_id"])
+        stud_id = str(random.randint(1,999999))
+        stud_id = self.prefix_zero(stud_id)
+        while stud_id in ids:
+            stud_id = str(random.randint(1,999999))
+            stud_id = self.prefix_zero(stud_id)
+        return stud_id
+
     def register(self):
+        """
+        Student details registration includes the below steps:
+        1. Obtaining the user credentials - email and password
+        2. Verifying if the credentials match the given pattern requirements
+        3. Ask for credentials until the pattern specifications match
+        4. Check if the given email has been already registered
+        5. Only if the email is not registered, the student id is generated and provided details are stored in student.data file
+        6. Student menu is displayed for the user to navigate to other options (l/r/x)
+        """
+        #Getting the credentials from user as input
         self.email = input("\033[1;37m Email: ")
         self.password = input("\033[1;37m Password: ")
+        #Verify if the credentials satisfy the given pattern conditions
         register_verify = self.verify_credentials(self.email, self.password)
         while not register_verify:
             print("\033[1;31m Incorrect email or password format")
@@ -38,30 +71,41 @@ class Student:
             self.password = input("\033[1;37m Password: ")
             register_verify = self.verify_credentials(self.email, self.password)
         print("\033[1;33m email and password formats acceptable")
-        self.account_verify, self.name = self.verify_account(self.email, self.password)
-        if self.account_verify:
+        #Check if student email has already been registered
+        email_verify, self.name = self.verify_email(self.email)
+        if email_verify:
             print(f"\033[1;31m Student {self.name} already exists")
+        #If not registered, generate the unique student id and store the student details to the data file
         else:
             self.name = input("\033[1;37m Name: ")
-            #self.generate_stud_id()
+            self.id = self.generate_stud_id()
+            self.new_student_df = pd.DataFrame([[self.id, self.name, self.email, self.password, []]], columns=list(self.student_df.columns))
+            self.student_df = self.student_df._append(self.new_student_df, ignore_index=True)
+            Data.write_data(self.file, self.student_df)
             print(f"\033[1;33m Enrolling Student {self.name}")
+        #Display the student menu after registration
         self.student_menu()
 
     def login(self):
         self.email = input("\033[1;37m Email: ")
         self.password = input("\033[1;37m Password: ")
         login_verify = self.verify_credentials(self.email, self.password)
+        self.stored_password = self.student_df.loc[self.student_df["Email"].str.contains(self.email, case=False), "Password"]
+
         while not login_verify:
             print("\033[1;31m Incorrect email or password format")
             self.email = input("\033[1;37m Email: ")
             self.password = input("\033[1;37m Password: ")
             login_verify = self.verify_credentials(self.email, self.password)
         print("\033[1;33m email and password formats acceptable")
-        self.account_verify, self.name = self.verify_account(self.email, self.password)
-        if not self.account_verify:
+        email_verify, self.name = self.verify_email(self.email)
+        if not email_verify:
             print("\033[1;31m Student does not exist")
             self.student_menu()
         else:
+            while self.stored_password.values[0] != self.password:
+                print("\033[1;31m Password mismatch. Please enter correct password")
+                self.password = input("\033[1;37m Password: ")
             self.student_course_menu()
 
     def change_password(self):
@@ -75,7 +119,10 @@ class Student:
         while self.new_password != self.confirm_password:
             print("\t \033[1;31m Password does not match. Try Again!")
             self.confirm_password = input("\t \033[1;37m Confirm Password: ")
-        self.password = self.new_password
+        self.stored_password = self.new_password
+        stu_id = self.student_df.loc[self.student_df["Email"].str.contains(self.email, case=False), "student_id"].values[0]
+        self.student_df.loc[self.student_df["Email"].str.contains(self.email, case=False), "student_id"] = self.prefix_zero(stu_id)
+        Data.write_data(self.file, self.student_df)
         
     def remove_subject(self, sub_id):
         pass
