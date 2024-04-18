@@ -1,3 +1,4 @@
-student_id,Name,Email,Password,Subjects
-545636,John smith,John.Smith@university.com,Qwerty123,[]
-000001,Kamatchi Gnanavel,kamatchi.gnanavel@university.com,Qazxsw000,[]
+Student_id;Name;Email;Password;Subjects
+349102;John Smith;john.smith@university.com;Qwerty1234;[{'id': '001', 'marks': 75, 'grade': 'D'}, {'id': '030', 'marks': 90, 'grade': 'HD'}, {'id': '035', 'marks': 70, 'grade': 'C'}]
+316558;Mary Ann;Mary.Ann@university.com;Qazxsw123;[{'id': '550', 'marks': 90, 'grade': 'HD'}]
+031381;Allen Jones;Allen.Jones@university.com;Asdfgh123;[]
