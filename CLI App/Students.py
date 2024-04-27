@@ -4,6 +4,8 @@ from Subjects import Subject
 import pandas as pd
 import random
 
+#Existing id if 000001 after login and doing changes becomes 1 while writing check that
+
 class Student:
     def __init__(self) -> None:
         self.name = ""
@@ -42,22 +44,15 @@ class Student:
         else:
             return False, self.name
 
-    def prefix_zero(self, id):
-        len_id = len(id)
-        id = id.zfill(6) if len_id < 6 else id
-        return id
-
-    def check_student_ids(self):
+    """def check_student_ids(self):
         for id in list(self.student_df["Student_id"]):
-            self.student_df.loc[self.student_df["Student_id"] == id, "Student_id"] = self.prefix_zero(id)
+            id.zfill(6)"""
 
     def generate_stud_id(self):
         ids = list(self.student_df["Student_id"])
-        stud_id = str(random.randint(1,999999))
-        stud_id = self.prefix_zero(stud_id)
+        stud_id = str(random.randint(1,999999)).zfill(6)
         while stud_id in ids:
-            stud_id = str(random.randint(1,999999))
-            stud_id = self.prefix_zero(stud_id)
+            stud_id = str(random.randint(1,999999)).zfill(6)
         return stud_id
 
     def register(self):
@@ -116,6 +111,10 @@ class Student:
             while stored_password.values[0] != self.password:
                 print("\033[1;31m Password mismatch. Please enter correct password")
                 self.password = input("\033[1;37m Password: ")
+            self.current_subjects = self.student_df.loc[self.student_df["Email"].str.contains(self.email, case=False), "Subjects"].values[0]
+            if self.current_subjects:
+                self.current_subjects = eval(self.current_subjects)
+        
             self.student_course_menu()
         
     def change_password(self):
@@ -130,11 +129,10 @@ class Student:
             print("\t \033[1;31m Password does not match. Try Again!")
             self.confirm_password = input("\t \033[1;37m Confirm Password: ")
         self.student_df.loc[self.student_df["Email"].str.contains(self.email, case=False), "Password"] = self.new_password
-        self.check_student_ids()
+        #self.check_student_ids()
         Data.write_data(self.file, self.student_df)
         
     def remove_subject(self, sub_id):
-        self.current_subjects = eval(self.student_df.loc[self.student_df["Email"].str.contains(self.email, case=False), "Subjects"].values[0])
         sub_found = False
         if len(self.current_subjects) >= 1:
             for subject in self.current_subjects:
@@ -143,7 +141,7 @@ class Student:
                     idx = self.current_subjects.index(subject)
                     self.current_subjects.pop(idx)
                     self.student_df.loc[self.student_df["Email"].str.contains(self.email, case=False), "Subjects"] = str(self.current_subjects)
-                    self.check_student_ids()
+                    #self.check_student_ids()
                     Data.write_data(self.file, self.student_df)
                     print(f"\t \033[1;33m Dropping Subject-{sub_id}\n\t  You are now enrolled in {len(self.current_subjects)} out of 4 subjects")
             if not sub_found:
@@ -153,12 +151,28 @@ class Student:
 
 #####Jay's part##############
     def enrol_subjects(self):
-        #self.subjects.append({"id": Subject.generate_sub_id(), "marks": Subject.generate_marks(), "grade": Subject.assign_grade()})
-        pass
-    def assign_results(self):
-        pass
+        if len(self.current_subjects) == 4:
+            print("\t \033[1;31m You have already enrolled in the maximum number of subjects.\033[0m")
+        else:
+            # Add new Subject
+            new_sub = Subject(self.current_subjects)
+            new_subject = new_sub.assign_sub()
+            # Add the subject to the student's enrolled subjects
+            self.current_subjects.append(new_subject)
+            self.student_df.loc[self.student_df["Email"].str.contains(self.email, case=False), "Subjects"] = str(self.current_subjects)
+            # Save the updated student data
+            #self.check_student_ids()
+            Data.write_data(self.file, self.student_df)
+            # Print the enrolled subject details
+            print(f"\t \033[1;33m Enrolling in Subject-{new_subject["id"]}", f"\n\t \033[1;33m You are now enrolled in {len(self.current_subjects)} out of 4 subjects")
+
     def view_enrolment(self):
-        pass
+        if self.current_subjects:
+            print(f"\t \033[1;33m Showing {len(self.current_subjects)} subjects")
+            for subj in self.current_subjects:
+                print(f"\t \033[1;37m [ Subject:: {subj["id"]} -- mark = {subj["marks"]} -- grade =  {subj["grade"]} ]")
+        else:
+            print("\t \033[1;33m Showing 0 subjects")
 ##############################
 
     def student_course_menu(self):
