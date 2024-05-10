@@ -1,5 +1,0 @@
-Student_id;Name;Email;Password;Subjects
-349102;John Smith;john.smith@university.com;Qwerty1234;[{'id': '001', 'marks': 75, 'grade': 'D'}, {'id': '030', 'marks': 90, 'grade': 'HD'}, {'id': '035', 'marks': 70, 'grade': 'C'}]
-316558;Mary Ann;Mary.Ann@university.com;Qazxsw123;[{'id': '550', 'marks': 90, 'grade': 'HD'}]
-31381;Allen Jones;Allen.Jones@university.com;Asdfgh123;[]
-1;Kamatchi Gnanavel;kamatchi.gnanavel@university.com;Asdfgh222;[{'id': '892', 'marks': 93, 'grade': 'HD'}, {'id': '668', 'marks': 100, 'grade': 'HD'}, {'id': '490', 'marks': 89, 'grade': 'HD'}]

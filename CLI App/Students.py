@@ -1,10 +1,7 @@
 import re
 from DataFile import Data
 from Subjects import Subject
-import pandas as pd
 import random
-
-#Existing id if 000001 after login and doing changes becomes 1 while writing check that
 
 class Student:
     def __init__(self) -> None:
@@ -17,15 +14,9 @@ class Student:
         self.data_initialise()
 
     def data_initialise(self):
-        self.file = Data("CLI App\\Student.data")
-        file_check = Data.check_file(self.file)
+        file_check = Data.check_file()
         if file_check:
-            self.student_df = self.read_accounts()
-
-    def read_accounts(self):
-        student_data = Data.read_data(self.file)
-        student_data = student_data.astype(str, errors="ignore")
-        return student_data
+            self.student_list = Data.read_data()
 
     def verify_credentials(self, email, password):
         verify_cred_result = True
@@ -36,20 +27,15 @@ class Student:
         return verify_cred_result
 
     def verify_email(self, email):
-        emails = [x.lower() for x in list(self.student_df["Email"])]
-        if email.lower() in emails:
-            stud_rec = self.student_df[self.student_df["Email"].str.contains(email, case=False)]
-            self.name = stud_rec.Name.values[0]
-            return True, self.name
-        else:
-            return False, self.name
-
-    """def check_student_ids(self):
-        for id in list(self.student_df["Student_id"]):
-            id.zfill(6)"""
+        stu_found = False
+        for student in self.student_list:
+            if email.lower() == student["Email"].lower():
+                self.name = student["Name"]
+                stu_found = True
+        return stu_found, self.name
 
     def generate_stud_id(self):
-        ids = list(self.student_df["Student_id"])
+        ids = [student["Student_id"] for student in self.student_list]
         stud_id = str(random.randint(1,999999)).zfill(6)
         while stud_id in ids:
             stud_id = str(random.randint(1,999999)).zfill(6)
@@ -84,9 +70,9 @@ class Student:
         else:
             self.name = input("\033[1;37m Name: ").title()
             self.id = self.generate_stud_id()
-            self.new_student_df = pd.DataFrame([[self.id, self.name, self.email, self.password, self.current_subjects]], columns=list(self.student_df.columns))
-            self.student_df = self.student_df._append(self.new_student_df, ignore_index=True)
-            Data.write_data(self.file, self.student_df)
+            self.new_student = {"Student_id":self.id, "Name": self.name, "Email": self.email, "Password":self.password, "Subjects":str(self.current_subjects)}
+            self.student_list.append(self.new_student)
+            Data.write_data(self.student_list)
             print(f"\033[1;33m Enrolling Student {self.name}")
         #Display the student menu after registration
         self.student_menu()
@@ -95,7 +81,7 @@ class Student:
         self.email = input("\033[1;37m Email: ")
         self.password = input("\033[1;37m Password: ")
         login_verify = self.verify_credentials(self.email, self.password)
-        stored_password = self.student_df.loc[self.student_df["Email"].str.contains(self.email, case=False), "Password"]
+        stored_password = [student["Password"] for student in self.student_list if self.email.lower() == student["Email"].lower()]
 
         while not login_verify:
             print("\033[1;31m Incorrect email or password format")
@@ -108,13 +94,12 @@ class Student:
             print("\033[1;31m Student does not exist")
             self.student_menu()
         else:
-            while stored_password.values[0] != self.password:
+            while stored_password[0] != self.password:
                 print("\033[1;31m Password mismatch. Please enter correct password")
                 self.password = input("\033[1;37m Password: ")
-            self.current_subjects = self.student_df.loc[self.student_df["Email"].str.contains(self.email, case=False), "Subjects"].values[0]
-            if self.current_subjects:
-                self.current_subjects = eval(self.current_subjects)
-        
+            self.current_subjects = [student["Subjects"] for student in self.student_list if self.email.lower() == student["Email"].lower()]
+            if self.current_subjects[0]:
+                self.current_subjects = eval(self.current_subjects[0])
             self.student_course_menu()
         
     def change_password(self):
@@ -128,9 +113,10 @@ class Student:
         while self.new_password != self.confirm_password:
             print("\t \033[1;31m Password does not match. Try Again!")
             self.confirm_password = input("\t \033[1;37m Confirm Password: ")
-        self.student_df.loc[self.student_df["Email"].str.contains(self.email, case=False), "Password"] = self.new_password
-        #self.check_student_ids()
-        Data.write_data(self.file, self.student_df)
+        for student in self.student_list:
+            if self.email.lower() == student["Email"].lower():
+                student["Password"] = self.new_password
+        Data.write_data(self.student_list)
         
     def remove_subject(self, sub_id):
         sub_found = False
@@ -140,9 +126,10 @@ class Student:
                     sub_found = True
                     idx = self.current_subjects.index(subject)
                     self.current_subjects.pop(idx)
-                    self.student_df.loc[self.student_df["Email"].str.contains(self.email, case=False), "Subjects"] = str(self.current_subjects)
-                    #self.check_student_ids()
-                    Data.write_data(self.file, self.student_df)
+                    for student in self.student_list:
+                        if self.email.lower() == student["Email"].lower():
+                            student["Subjects"] = str(self.current_subjects)
+                    Data.write_data(self.student_list)
                     print(f"\t \033[1;33m Dropping Subject-{sub_id}\n\t  You are now enrolled in {len(self.current_subjects)} out of 4 subjects")
             if not sub_found:
                 print(f"\t \033[1;31m Subject-{sub_id} not found in currently enrolled list of subjects")
@@ -159,10 +146,11 @@ class Student:
             new_subject = new_sub.assign_sub()
             # Add the subject to the student's enrolled subjects
             self.current_subjects.append(new_subject)
-            self.student_df.loc[self.student_df["Email"].str.contains(self.email, case=False), "Subjects"] = str(self.current_subjects)
+            for student in self.student_list:
+                if self.email.lower() == student["Email"].lower():
+                    student["Subjects"] = str(self.current_subjects)
             # Save the updated student data
-            #self.check_student_ids()
-            Data.write_data(self.file, self.student_df)
+            Data.write_data(self.student_list)
             # Print the enrolled subject details
             print(f"\t \033[1;33m Enrolling in Subject-{new_subject["id"]}", f"\n\t \033[1;33m You are now enrolled in {len(self.current_subjects)} out of 4 subjects")
 
