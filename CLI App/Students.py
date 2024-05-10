@@ -70,7 +70,7 @@ class Student:
         else:
             self.name = input("\033[1;37m Name: ").title()
             self.id = self.generate_stud_id()
-            self.new_student = {"Student_id":self.id, "Name": self.name, "Email": self.email, "Password":self.password, "Subjects":str(self.current_subjects)}
+            self.new_student = {"Student_id":self.id, "Name": self.name, "Email": self.email, "Password":self.password, "Subjects":str([])}
             self.student_list.append(self.new_student)
             Data.write_data(self.student_list)
             print(f"\033[1;33m Enrolling Student {self.name}")
